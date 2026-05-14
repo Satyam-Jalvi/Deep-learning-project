@@ -1,0 +1,71 @@
+import pandas as pd
+import joblib
+import os
+
+from sklearn.model_selection import train_test_split
+from src.core.pipeline import build_pipeline
+
+
+def train(config):
+
+    print(f"\n🔹 Training: {config['name']}")
+
+    df = pd.read_csv(config["data_path"])
+
+    # clean columns
+    df.columns = df.columns.str.strip()
+
+    # remove useless columns
+    if "id" in df.columns:
+        df.drop("id", axis=1, inplace=True)
+
+    df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
+
+    # target
+    target = config["target"]
+
+    # encode target if needed
+    if df[target].dtype == "object":
+        unique_vals = set(df[target].dropna().unique())
+
+        if unique_vals == {"M", "B"}:
+            df[target] = df[target].map({"B": 0, "M": 1})
+        elif unique_vals == {"Yes", "No"}:
+            df[target] = df[target].map({"No": 0, "Yes": 1})
+
+    X = df.drop(target, axis=1)
+    y = df[target]
+
+    # -------------------------
+    # AUTO DETECT FEATURES
+    # -------------------------
+    num_cols = X.select_dtypes(include=["int64", "float64"]).columns.tolist()
+    cat_cols = X.select_dtypes(include=["object"]).columns.tolist()
+
+    # override if config provides
+    num_cols = config.get("num_cols", num_cols)
+    cat_cols = config.get("cat_cols", cat_cols)
+
+    config["num_cols"] = num_cols
+    config["cat_cols"] = cat_cols
+
+    # split
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y,
+        test_size=config.get("test_size", 0.2),
+        random_state=42,
+        stratify=y if config.get("stratify", True) else None
+    )
+
+    # model
+    model = build_pipeline(config)
+    model.fit(X_train, y_train)
+
+    # save
+    os.makedirs("models", exist_ok=True)
+    path = f"models/{config['name']}_model.pkl"
+    joblib.dump(model, path)
+
+    print(f"✅ Model saved: {path}")
+
+    return model, X_test, y_test
