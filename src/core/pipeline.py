@@ -53,7 +53,8 @@ def build_pipeline(config):
             kernel=config.get("kernel", "rbf"),
             C=config.get("C", 1.0),
             gamma=config.get("gamma", "scale"),
-            probability=True
+            probability=True,
+            decision_function_shape="ovr"
         ))
     ])
 

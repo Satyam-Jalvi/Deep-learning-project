@@ -7,6 +7,7 @@ import pandas as pd
 from src.config.heart_config import CONFIG as HEART_CONFIG
 from src.config.breast_config import CONFIG as BREAST_CONFIG
 from src.config.diabetes_config import CONFIG as DIABETES_CONFIG
+from src.config.dermatology_config import CONFIG as DERMATOLOGY_CONFIG
 
 router = APIRouter()
 
@@ -16,13 +17,15 @@ router = APIRouter()
 models = {
     "heart": joblib.load("models/heart_model.pkl"),
     "breast": joblib.load("models/breast_model.pkl"),
-    "diabetes": joblib.load("models/diabetes_model.pkl")
+    "diabetes": joblib.load("models/diabetes_model.pkl"),
+    "dermatology": joblib.load("models/dermatology_model.pkl")
 }
 
 configs = {
     "heart": HEART_CONFIG,
     "breast": BREAST_CONFIG,
-    "diabetes": DIABETES_CONFIG
+    "diabetes": DIABETES_CONFIG,
+    "dermatology": DERMATOLOGY_CONFIG
 }
 
 
@@ -70,9 +73,36 @@ def predict(disease: str, input_data: dict):
         pred_out = int(pred)
 
     label_map = {
-        "heart": {0: "No Heart Disease", 1: "Heart Disease"},
-        "breast": {0: "Benign", 1: "Malignant"},
-        "diabetes": {0: "Not Diabetic", 1: "Diabetic"}
+
+        "heart": {
+            0: "No Heart Disease",
+            1: "Heart Disease"
+        },
+
+        "breast": {
+            0: "Benign",
+            1: "Malignant"
+        },
+
+        "diabetes": {
+            0: "Not Diabetic",
+            1: "Diabetic"
+        },
+
+        "dermatology": {
+
+            1: "Psoriasis",
+
+            2: "Seborrheic Dermatitis",
+
+            3: "Lichen Planus",
+
+            4: "Pityriasis Rosea",
+
+            5: "Chronic Dermatitis",
+
+            6: "Pityriasis Rubra Pilaris"
+        }
     }
 
     return {
