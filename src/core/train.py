@@ -4,6 +4,7 @@ import os
 
 from sklearn.model_selection import train_test_split
 from src.core.pipeline import build_pipeline
+from sklearn.model_selection import GridSearchCV
 
 
 def train(config):
@@ -57,9 +58,48 @@ def train(config):
         stratify=y if config.get("stratify", True) else None
     )
 
-    # model
+    # build pipeline
     model = build_pipeline(config)
-    model.fit(X_train, y_train)
+
+    # parameters for tuning
+    param_grid = {
+
+        "svm__C": [0.1, 1, 10],
+
+        "svm__kernel": ["linear", "rbf"],
+
+        "svm__gamma": ["scale", "auto"],
+
+        "pca__n_components": [5, 10]
+    }
+
+    # GridSearchCV
+    grid_search = GridSearchCV(
+
+        estimator=model,
+
+        param_grid=param_grid,
+
+        cv=5,
+
+        scoring="accuracy",
+
+        n_jobs=-1,
+
+        verbose=2
+    )
+
+    # train model
+    grid_search.fit(X_train, y_train)
+
+    # best model
+    model = grid_search.best_estimator_
+
+    print("\n✅ Best Parameters:")
+    print(grid_search.best_params_)
+
+    print("\n✅ Best CV Score:")
+    print(grid_search.best_score_)
 
     # save
     os.makedirs("models", exist_ok=True)
