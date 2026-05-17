@@ -1,4 +1,5 @@
-from sklearn.pipeline import Pipeline
+from imblearn.pipeline import Pipeline
+from imblearn.over_sampling import SMOTE
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.decomposition import PCA
@@ -41,7 +42,13 @@ def build_pipeline(config):
     # -------------------------
     pipeline = Pipeline([
         ("preprocessing", preprocessor),
-        ("pca", PCA(n_components=config.get("pca_components", 10))),
+
+        ("smote", SMOTE(random_state=42)),
+
+        ("pca", PCA(
+            n_components=config.get("pca_components", 10)
+        )),
+
         ("svm", SVC(
             kernel=config.get("kernel", "rbf"),
             C=config.get("C", 1.0),
